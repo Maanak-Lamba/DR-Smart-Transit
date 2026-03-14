@@ -1,18 +1,20 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { DURHAM_CENTER, type BusStop, type BusPosition, type RouteResult } from '@/data/mockTransitData';
+import { DURHAM_CENTER, type BusStop, type RouteResult } from '@/data/mockTransitData';
+import type { RealtimeBus } from '@/services/transitApi';
 
 interface TransitMapProps {
   stops: BusStop[];
-  buses: BusPosition[];
+  buses: RealtimeBus[];
   selectedRoute: RouteResult | null;
 }
 
 export default function TransitMap({ stops, buses, selectedRoute }: TransitMapProps) {
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const markersRef = useRef<L.LayerGroup | null>(null);
+  const stopsLayerRef = useRef<L.LayerGroup | null>(null);
+  const busesLayerRef = useRef<L.LayerGroup | null>(null);
   const routeLayerRef = useRef<L.Polyline | null>(null);
 
   // Initialize map
@@ -21,7 +23,7 @@ export default function TransitMap({ stops, buses, selectedRoute }: TransitMapPr
 
     const map = L.map(containerRef.current, {
       center: DURHAM_CENTER,
-      zoom: 13,
+      zoom: 12,
       zoomControl: true,
     });
 
@@ -30,7 +32,8 @@ export default function TransitMap({ stops, buses, selectedRoute }: TransitMapPr
     }).addTo(map);
 
     mapRef.current = map;
-    markersRef.current = L.layerGroup().addTo(map);
+    stopsLayerRef.current = L.layerGroup().addTo(map);
+    busesLayerRef.current = L.layerGroup().addTo(map);
 
     return () => {
       map.remove();
@@ -38,43 +41,43 @@ export default function TransitMap({ stops, buses, selectedRoute }: TransitMapPr
     };
   }, []);
 
-  // Update stops and buses
+  // Update stops
   useEffect(() => {
-    if (!mapRef.current || !markersRef.current) return;
-    markersRef.current.clearLayers();
+    if (!stopsLayerRef.current) return;
+    stopsLayerRef.current.clearLayers();
 
-    // Add stops
     stops.forEach(stop => {
       const icon = L.divIcon({
         className: 'stop-marker',
-        html: `<div style="width:12px;height:12px;background:#006747;border:3px solid white;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,0.3);"></div>`,
-        iconSize: [12, 12],
-        iconAnchor: [6, 6],
+        html: `<div style="width:10px;height:10px;background:#006747;border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3);"></div>`,
+        iconSize: [10, 10],
+        iconAnchor: [5, 5],
       });
 
       L.marker([stop.lat, stop.lng], { icon })
         .bindPopup(`<strong>${stop.name}</strong><br/><span style="font-size:12px;color:#64748B">Routes: ${stop.routes.join(', ')}</span>`)
-        .addTo(markersRef.current!);
+        .addTo(stopsLayerRef.current!);
     });
+  }, [stops]);
 
-    // Add buses
+  // Update buses (separate layer for smooth updates)
+  useEffect(() => {
+    if (!busesLayerRef.current) return;
+    busesLayerRef.current.clearLayers();
+
     buses.forEach(bus => {
-      const color = bus.delay > 60 ? '#EF4444' : '#006747';
       const icon = L.divIcon({
         className: 'bus-marker',
-        html: `<div style="background:${color};color:white;font-family:'Roboto Mono',monospace;font-size:11px;font-weight:700;padding:4px 8px;border-radius:6px;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.3);border:2px solid white;">${bus.label}</div>`,
-        iconSize: [40, 24],
-        iconAnchor: [20, 12],
+        html: `<div style="background:#006747;color:white;font-family:'Roboto Mono',monospace;font-size:10px;font-weight:700;padding:3px 6px;border-radius:4px;white-space:nowrap;box-shadow:0 2px 4px rgba(0,0,0,0.3);border:2px solid white;line-height:1;">${bus.label}</div>`,
+        iconSize: [36, 20],
+        iconAnchor: [18, 10],
       });
 
-      const statusText = bus.delay > 60 ? `Delayed ${Math.round(bus.delay / 60)} min` : 'On Time';
-      const statusColor = bus.delay > 60 ? '#EF4444' : '#22C55E';
-
       L.marker([bus.lat, bus.lng], { icon })
-        .bindPopup(`<strong>Route ${bus.label}</strong><br/><span style="font-size:12px;color:${statusColor}">${statusText}</span><br/><span style="font-family:Roboto Mono;font-size:12px">${bus.speed} km/h</span>`)
-        .addTo(markersRef.current!);
+        .bindPopup(`<strong>Route ${bus.label}</strong><br/><span style="font-family:'Roboto Mono';font-size:12px">ID: ${bus.id}</span>`)
+        .addTo(busesLayerRef.current!);
     });
-  }, [stops, buses]);
+  }, [buses]);
 
   // Update selected route
   useEffect(() => {
