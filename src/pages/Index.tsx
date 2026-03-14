@@ -1,11 +1,12 @@
 import { useState, useCallback } from 'react';
-import { Bus, Menu } from 'lucide-react';
+import { Bus, Menu, Wifi, WifiOff } from 'lucide-react';
 import TransitMap from '@/components/transit/TransitMap';
 import SearchPanel from '@/components/transit/SearchPanel';
 import RouteResults from '@/components/transit/RouteResults';
 import LiveTripCard from '@/components/transit/LiveTripCard';
 import ProfileModal from '@/components/transit/ProfileModal';
-import { mockStops, mockBuses, mockRouteResults, type RouteResult } from '@/data/mockTransitData';
+import { mockStops, mockRouteResults, type RouteResult } from '@/data/mockTransitData';
+import { useRealtimeBuses } from '@/hooks/useRealtimeBuses';
 import { toast } from 'sonner';
 
 interface UserProfile {
@@ -22,6 +23,9 @@ const Index = () => {
   const [scheduledTrip, setScheduledTrip] = useState<RouteResult | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [panelOpen, setPanelOpen] = useState(true);
+
+  // Real-time bus data polling every 10 seconds
+  const { buses: realtimeBuses, loading: busesLoading, error: busesError } = useRealtimeBuses(10000);
 
   const handleProfileComplete = useCallback((p: UserProfile) => {
     setProfile(p);
@@ -65,17 +69,27 @@ const Index = () => {
       <div className="absolute inset-0">
         <TransitMap
           stops={mockStops}
-          buses={mockBuses}
+          buses={realtimeBuses}
           selectedRoute={selectedRoute}
         />
       </div>
 
       {/* Header */}
       <div className="absolute top-0 left-0 right-0 z-10 p-3">
-        <div className="flex items-center gap-3 max-w-lg">
+        <div className="flex items-center gap-2 max-w-lg">
           <div className="transit-panel px-3 py-2 flex items-center gap-2">
             <Bus className="w-5 h-5 text-primary" />
             <span className="font-bold text-foreground text-sm">DRT Smart Transit</span>
+          </div>
+          <div className="transit-panel px-2 py-2 flex items-center gap-1">
+            {busesError ? (
+              <WifiOff className="w-4 h-4 text-destructive" />
+            ) : (
+              <Wifi className="w-4 h-4 text-success" />
+            )}
+            <span className="font-mono text-xs text-muted-foreground">
+              {realtimeBuses.length} buses
+            </span>
           </div>
           <button
             onClick={() => setPanelOpen(!panelOpen)}
