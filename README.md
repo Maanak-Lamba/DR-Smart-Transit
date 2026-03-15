@@ -25,7 +25,7 @@ DRT Smart Transit helps riders quickly access live transit information, making i
 * React
 * shadcn/ui
 * Tailwind CSS
-
+  
 ## ☁️ Deployment
 
 The application is currently deployed using **Railway**.
@@ -35,3 +35,7 @@ The application is currently deployed using **Railway**.
 * Advanced route planning
 * Personalized transit alerts
 * Mobile app version
+
+## Cotributers
+* Maanak Lamba
+* Ashish Ajay
