@@ -13,9 +13,28 @@ export interface BusPosition {
   lng: number;
   heading: number;
   speed: number;
-  delay: number; // seconds, negative = early
+  delay: number;
   tripId: string;
   label: string;
+}
+
+export interface TransferPoint {
+  lat: number;
+  lng: number;
+  nextRoute: string;
+}
+
+export interface RouteStop {
+  name: string;
+  time: string;
+  routeId?: string;
+}
+
+// Individual transit leg with its own polyline and route info
+export interface RouteLeg {
+  routeNumber: string;
+  routeName: string;
+  polyline: [number, number][];
 }
 
 export interface RouteResult {
@@ -28,11 +47,22 @@ export interface RouteResult {
   transfers: number;
   status: 'on-time' | 'delayed';
   delayMinutes?: number;
-  stops: { name: string; time: string }[];
-  polyline: [number, number][];
+  stops: RouteStop[];
+  polyline: [number, number][]; // combined polyline (fallback)
+  legs?: RouteLeg[];             // per-leg polylines for multi-color rendering
+
+  // Walking legs
+  walkToStop?: [number, number][];
+  walkFromStop?: [number, number][];
+
+  // Transfer info
+  transferPoints?: TransferPoint[];
+
+  // Boarding stop coords for proximity check
+  boardingStopLat?: number | null;
+  boardingStopLng?: number | null;
 }
 
-// Durham Region center
 export const DURHAM_CENTER: [number, number] = [43.8971, -78.8658];
 
 export const mockStops: BusStop[] = [
@@ -79,50 +109,10 @@ export const mockRouteResults: RouteResult[] = [
       [43.9456, -78.8968],
       [43.9070, -78.8220],
     ],
-  },
-  {
-    id: 'r2',
-    routeName: 'Lakeshore Connection',
-    routeNumber: '910',
-    departureTime: '10:20 AM',
-    arrivalTime: '11:05 AM',
-    duration: '45 min',
-    transfers: 1,
-    status: 'delayed',
-    delayMinutes: 3,
-    stops: [
-      { name: 'Oshawa Centre Terminal', time: '10:20 AM' },
-      { name: 'Whitby Station', time: '10:35 AM' },
-      { name: 'Ajax Station', time: '10:50 AM' },
-      { name: 'Pickering Town Centre', time: '11:05 AM' },
-    ],
-    polyline: [
-      [43.8975, -78.8570],
-      [43.8679, -78.9420],
-      [43.8484, -79.0260],
-      [43.8385, -79.0870],
-    ],
-  },
-  {
-    id: 'r3',
-    routeName: 'Highway 2 Local',
-    routeNumber: '302',
-    departureTime: '10:30 AM',
-    arrivalTime: '11:10 AM',
-    duration: '40 min',
-    transfers: 0,
-    status: 'on-time',
-    stops: [
-      { name: 'Dundas St & Brock St', time: '10:30 AM' },
-      { name: 'Simcoe St & King St', time: '10:38 AM' },
-      { name: 'Whitby Station', time: '10:55 AM' },
-      { name: 'Courtice Rd & Durham Hwy 2', time: '11:10 AM' },
-    ],
-    polyline: [
-      [43.8930, -78.8610],
-      [43.8997, -78.8658],
-      [43.8679, -78.9420],
-      [43.8815, -78.7900],
-    ],
+    walkToStop: [],
+    walkFromStop: [],
+    transferPoints: [],
+    boardingStopLat: 43.8975,
+    boardingStopLng: -78.8570,
   },
 ];

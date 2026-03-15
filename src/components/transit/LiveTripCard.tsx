@@ -1,16 +1,46 @@
-import { Bus, MapPin, Hand, CheckCircle2 } from 'lucide-react';
+import { Bus, MapPin, Hand, CheckCircle2, Clock } from 'lucide-react';
 import type { RouteResult } from '@/data/mockTransitData';
 
 interface LiveTripCardProps {
   route: RouteResult;
   canCheckIn: boolean;
   canHalt: boolean;
+  busArrivingSoon: boolean;
   onCheckIn: () => void;
   onHalt: () => void;
   onCancel: () => void;
 }
 
-export default function LiveTripCard({ route, canCheckIn, canHalt, onCheckIn, onHalt, onCancel }: LiveTripCardProps) {
+export default function LiveTripCard({ route, canCheckIn, canHalt, busArrivingSoon, onCheckIn, onHalt, onCancel }: LiveTripCardProps) {
+
+  const statusMessage = () => {
+    if (!busArrivingSoon) {
+      return (
+        <p className="text-xs text-muted-foreground mt-2 text-center">
+          <Clock className="w-3 h-3 inline mr-1" />
+          Actions unlock 3 minutes before departure
+        </p>
+      );
+    }
+    if (!canCheckIn) {
+      return (
+        <p className="text-xs text-muted-foreground mt-2 text-center">
+          <MapPin className="w-3 h-3 inline mr-1" />
+          Move within 150m of the stop to check in
+        </p>
+      );
+    }
+    if (!canHalt) {
+      return (
+        <p className="text-xs text-muted-foreground mt-2 text-center">
+          <MapPin className="w-3 h-3 inline mr-1" />
+          Move within 30m of the stop to request a halt
+        </p>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 p-4 animate-slide-up">
       <div className="transit-panel p-4 max-w-lg mx-auto">
@@ -61,12 +91,7 @@ export default function LiveTripCard({ route, canCheckIn, canHalt, onCheckIn, on
           </button>
         </div>
 
-        {(!canCheckIn || !canHalt) && (
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            <MapPin className="w-3 h-3 inline mr-1" />
-            Move closer to the bus stop to enable actions
-          </p>
-        )}
+        {statusMessage()}
       </div>
     </div>
   );
