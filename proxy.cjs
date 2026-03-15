@@ -6,14 +6,13 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 
-const API_KEY = process.env.VITE_TRANSIT_API_KEY;
 const BASE_URL = 'https://external.transitapp.com';
 
 app.get('/api/nearby_routes', async (req, res) => {
   try {
     const params = new URLSearchParams(req.query);
     const response = await fetch(`${BASE_URL}/v3/public/nearby_routes?${params}`, {
-      headers: { apiKey: API_KEY }
+      headers: { apiKey: process.env.VITE_TRANSIT_API_KEY }
     });
     const data = await response.json();
     res.json(data);
@@ -26,7 +25,7 @@ app.get('/api/nearby_stops', async (req, res) => {
   try {
     const params = new URLSearchParams(req.query);
     const response = await fetch(`${BASE_URL}/v3/public/nearby_stops?${params}`, {
-      headers: { apiKey: API_KEY }
+      headers: { apiKey: process.env.VITE_TRANSIT_API_KEY }
     });
     const data = await response.json();
     res.json(data);
@@ -39,7 +38,7 @@ app.get('/api/plan', async (req, res) => {
   try {
     const params = new URLSearchParams(req.query);
     const response = await fetch(`${BASE_URL}/v3/public/plan?${params}`, {
-      headers: { apiKey: API_KEY }
+      headers: { apiKey: process.env.VITE_TRANSIT_API_KEY }
     });
     const data = await response.json();
     res.json(data);
@@ -52,7 +51,7 @@ app.get('/api/trip_plan', async (req, res) => {
   try {
     const params = new URLSearchParams(req.query);
     const response = await fetch(`${BASE_URL}/v3/public/trip_plan?${params}`, {
-      headers: { apiKey: API_KEY }
+      headers: { apiKey: process.env.VITE_TRANSIT_API_KEY }
     });
     const data = await response.json();
     res.json(data);
