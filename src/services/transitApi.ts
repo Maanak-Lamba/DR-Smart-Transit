@@ -71,7 +71,7 @@ export interface PlanResponse {
   results: PlanResult[];
 }
 
-const BASE_URL = 'http://localhost:3001/api';
+const BASE_URL = '/api';
 
 export async function fetchNearbyRoutes(lat: number, lon: number, departureTime?: number) {
   const params = new URLSearchParams({
